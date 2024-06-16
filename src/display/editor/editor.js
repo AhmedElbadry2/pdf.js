@@ -467,8 +467,9 @@ class AnnotationEditor {
   drag(tx, ty) {
     this.#initialPosition ||= [this.x, this.y];
     const [parentWidth, parentHeight] = this.parentDimensions;
-    this.x += tx / parentWidth;
-    this.y += ty / parentHeight;
+    const [rtx, rty] = this.screenToPageTranslation(tx, ty);
+    this.x += rtx / parentWidth;
+    this.y += rty / parentHeight;
     if (this.parent && (this.x < 0 || this.x > 1 || this.y < 0 || this.y > 1)) {
       // It's possible to not have a parent: for example, when the user is
       // dragging all the selected editors but this one on a page which has been
@@ -1093,10 +1094,7 @@ class AnnotationEditor {
       this.#prevDragY = event.clientY;
       pointerMoveCallback = e => {
         const { clientX: x, clientY: y } = e;
-        const [tx, ty] = this.screenToPageTranslation(
-          x - this.#prevDragX,
-          y - this.#prevDragY
-        );
+        const [tx, ty] = [x - this.#prevDragX, y - this.#prevDragY];
         this.#prevDragX = x;
         this.#prevDragY = y;
         this._uiManager.dragSelectedEditors(tx, ty);
