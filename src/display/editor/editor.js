@@ -479,10 +479,7 @@ class AnnotationEditor {
 
       // The element will be outside of its parent so change the parent.
       const { x, y } = this.div.getBoundingClientRect();
-      if (this.parent.findNewParent(this, x, y)) {
-        this.x -= Math.floor(this.x);
-        this.y -= Math.floor(this.y);
-      }
+      this.parent.findNewParent(this, x, y);
     }
 
     // The editor can be moved wherever the user wants, so we don't need to fix

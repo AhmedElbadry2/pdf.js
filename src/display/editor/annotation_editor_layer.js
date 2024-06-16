@@ -479,7 +479,7 @@ class AnnotationEditorLayer {
     if (editor.parent === this) {
       return;
     }
-
+    this.setPositionToNewParent(editor);
     if (editor.parent && editor.annotationElementId) {
       this.#uiManager.addDeletedAnnotationElement(editor.annotationElementId);
       AnnotationEditor.deleteAnnotationElement(editor);
@@ -492,6 +492,68 @@ class AnnotationEditorLayer {
     if (editor.div && editor.isAttachedToDOM) {
       editor.div.remove();
       this.div.append(editor.div);
+    }
+  }
+
+  /**
+   * Sets the editor poition to the new parent
+   * @param {AnnotationEditor} editor
+   */
+  setPositionToNewParent(editor) {
+    const { right, top, left, bottom } = editor.div.getBoundingClientRect();
+    const {
+      top: layerTop,
+      right: layerRight,
+      left: layerLeft,
+      bottom: layerBottom,
+      width: layerWidth,
+      height: layerHeight,
+    } = this.div.getBoundingClientRect();
+    const rotationDiffBetweenPages =
+      this.viewport.rotation - editor.parent.viewport.rotation;
+    if (rotationDiffBetweenPages) {
+      const crntRotation =
+        (360 - Number(editor.div.getAttribute("data-editor-rotation"))) % 360;
+
+      const newRotation = (crntRotation + rotationDiffBetweenPages + 360) % 360;
+      const rotationInverse = (360 - newRotation) % 360;
+      editor.pageRotation =
+        (editor.pageRotation + rotationDiffBetweenPages + 360) % 360;
+      editor.div.setAttribute("data-editor-rotation", rotationInverse);
+      editor.rotation = newRotation;
+    }
+
+    const rotationDiffBetweenEditorAndNewPage =
+      (this.viewport.rotation - editor.rotation + 360) % 360;
+    switch (rotationDiffBetweenEditorAndNewPage) {
+      case 0:
+        editor.x = (left - layerLeft) / layerWidth;
+        editor.y = (top - layerTop) / layerHeight;
+        break;
+      case 90:
+        editor.x = (top - layerTop) / layerHeight;
+        editor.y = (layerRight - right) / layerWidth;
+        break;
+      case 180:
+        editor.x = (layerRight - right) / layerWidth;
+        editor.y = (layerBottom - bottom) / layerHeight;
+        break;
+      case 270:
+        editor.x = (layerBottom - bottom) / layerHeight;
+        editor.y = (left - layerLeft) / layerWidth;
+        break;
+    }
+
+    switch (editor.rotation) {
+      case 90:
+        [editor.x, editor.y] = [editor.y, 1 - editor.x];
+        break;
+      case 180:
+        [editor.x, editor.y] = [1 - editor.x, 1 - editor.y];
+        break;
+      case 270:
+        [editor.x, editor.y] = [1 - editor.y, editor.x];
+        break;
     }
   }
 
